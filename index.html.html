@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Academia Supply — Guia de bolso</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: "Calm Growth" -->
+    <!-- Primary: #3B82F6 (Blue - Tech/Professional) but shifted to Green/Teal for Supply Chain nature -->
+    <!-- Custom Config for Brand Alignment -->
+    <script>
+        tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Roboto', 'Inter', 'sans-serif'],
+        },
+        colors: {
+          brand: {
+            50:  '#eef4ff',
+            100: '#dbeafe',
+            200: '#bfdbfe',
+            300: '#93c5fd',
+            400: '#60a5fa',
+            500: '#2D6CDF',  // azul de realce
+            600: '#1f5bd1',
+            700: '#1a4aa8',
+            800: '#12355f',
+            900: '#0B1F33',  // azul marinho principal
+            950: '#071828'   // azul marinho mais escuro (sidebar)
+          },
+          surface: {
+            50: '#F5F7FA',   // fundo claro do conteúdo
+            100:'#EEF2F7'
+          }
+        }
+      }
+    }
+  }
+</script>
+
+    <style>
+        /* Chart Container Styling Rules */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width to prevent stretching */
+            height: 300px;
+            max-height: 400px;
+            margin: 0 auto; /* Center horizontally */
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom scrollbar for content areas */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Animation utilities */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .nav-item.active {
+            background-color: rgba(45,108,223,0.22);
+            color: #ffffff;
+            border-right: 4px solid #2D6CDF;
+        }
+.nav-item {
+  color: rgba(255,255,255,0.85);
+}
+.nav-item:hover {
+  background-color: rgba(255,255,255,0.08);
+}
+</style>
+    
+    <!-- Application Structure Plan:
+         1. Layout: Sidebar Navigation (Left) + Main Content Area (Right).
+         2. Sections:
+            - Dashboard (📊 Estratégia & Propósito): Goals, Strategy text, KPI Chart.
+            - 🧭 Trilhas de Conhecimento (Jornada): Interactive cards for the 4 tracks (Ambientar, Explorar, etc.).
+            - 💻 Guia Prático SE Suite (Ferramentas): Tabbed guides for access/teams.
+            - Auditoria (ISO): Glossary and checklist.
+            - 👥 Quem é Quem (Rede): Filterable list of multipliers.
+            - 📅 Calendário: Timeline visualization.
+         3. Logic: Vanilla JS router to switch visibility of sections, Chart.js for KPIs.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+</head>
+<body class="bg-surface-50 text-slate-900 h-screen flex overflow-hidden font-sans">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-brand-950 text-white border-r border-brand-900/50 flex-shrink-0 flex flex-col h-full z-10 hidden md:flex">
+        <div class="p-6 border-b border-white/10">
+            <h1 class="text-xl font-bold tracking-tight">Academia <span class="text-brand-300">Supply</span></h1>
+            <p class="text-xs text-white/70 mt-1">Hub de Perguntas Frequentes</p>
+        </div>
+<nav class="flex-1 overflow-y-auto py-4 custom-scroll">
+            <ul class="space-y-1">
+                <li>
+                    <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white transition-colors flex items-center rounded-md">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M3 3v18h18"/>
+  <path d="M7 15V9"/>
+  <path d="M12 15V6"/>
+  <path d="M17 15v-4"/>
+</svg>
+                        <span>Estratégia &amp; Propósito</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('tracks')" id="nav-tracks" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition-colors flex items-center rounded-md">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11z"/>
+  <path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+</svg>
+                        <span>Trilhas de Conhecimento</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('sesuite')" id="nav-sesuite" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition-colors flex items-center rounded-md">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="3" y="4" width="18" height="14" rx="2"/>
+  <path d="M8 20h8"/>
+  <path d="M12 18v2"/>
+</svg>
+                        <span>Guia Prático SE Suite</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('audit')" id="nav-audit" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition-colors flex items-center rounded-md">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+  <path d="M14 2v6h6"/>
+  <path d="M9 13h6"/>
+  <path d="M9 17h6"/>
+  <path d="M9 9h2"/>
+</svg>
+                        <span>Auditoria ISO &amp; SGI</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('people')" id="nav-people" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition-colors flex items-center rounded-md">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+  <circle cx="9" cy="7" r="4"/>
+  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+</svg>
+                        <span>Quem é Quem</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('calendar')" id="nav-calendar" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition-colors flex items-center rounded-md">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="3" y="4" width="18" height="18" rx="2"/>
+  <path d="M16 2v4"/>
+  <path d="M8 2v4"/>
+  <path d="M3 10h18"/>
+  <path d="M8 14h2"/>
+  <path d="M12 14h2"/>
+  <path d="M16 14h2"/>
+</svg>
+                        <span>Calendário</span>
+                    </button>
+                </li>
+            
+        <!-- Links externos -->
+        <li>
+  <a href="https://sites.google.com/grupoboticario.com.br/supplychain/academia-supply-chain" target="_blank" rel="noopener noreferrer" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/90 hover:bg-white/10 transition">
+    <svg class="w-5 h-5 flex-none opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M14 3h7v7" />
+      <path d="M10 14L21 3" />
+      <path d="M21 14v7H3V3h7" />
+    </svg>
+    <span class="truncate">Site da Academia</span>
+  </a>
+</li>
+        <li>
+  <a href="https://notebooklm.google.com/notebook/00c06b31-f781-48d6-a451-163add40120c" target="_blank" rel="noopener noreferrer" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/90 hover:bg-white/10 transition">
+    <svg class="w-5 h-5 flex-none opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+      <path d="M8 9h8" />
+      <path d="M8 13h5" />
+    </svg>
+    <span class="truncate">Chatbot — Perguntas Frequentes</span>
+  </a>
+</li>
+</ul>
+        </nav>
+
+        <!-- ===== Sidebar Chat Widget (local) ===== -->
+        <div id="asupply-sidebar-chat" class="mx-4 mt-4 mb-3 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <button id="asupply-sidebar-chat-toggle"
+                  type="button"
+                  class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
+            <span class="flex items-center gap-2 text-sm font-semibold text-white/90">
+              <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-white/10">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+                  <path d="M8 9h8"/>
+                  <path d="M8 13h5"/>
+                </svg>
+              </span>
+              Chat rápido
+            </span>
+            <span class="text-white/70 text-xs" id="asupply-chat-chevron">Abrir</span>
+          </button>
+
+          <div id="asupply-sidebar-chat-panel" class="hidden px-4 pb-4">
+            <div class="text-[11px] text-white/70 mb-2 leading-snug">
+              Respostas rápidas (roteadas). Para IA + biblioteca, use o botão <b>NotebookLM</b>.
+            </div>
+
+            <div id="asupply-sidebar-chat-messages"
+                 class="h-44 overflow-y-auto rounded-xl border border-white/10 bg-black/10 p-2 text-xs space-y-2 custom-scroll">
+              <div class="flex gap-2">
+                <div class="h-6 w-6 rounded-full bg-white/15 flex items-center justify-center text-[10px] font-bold">A</div>
+                <div class="bg-white/10 border border-white/10 rounded-2xl px-2 py-1 max-w-[88%]">
+                  Oi! 👋 Me diga o tema: <b>Trilhas</b>, <b>SE Suite</b>, <b>Acesso</b>, <b>Suporte</b>.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-2 flex gap-2">
+              <input id="asupply-sidebar-chat-input" type="text"
+                     class="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-brand-300/60"
+                     placeholder="Digite aqui…">
+              <button id="asupply-sidebar-chat-send" type="button"
+                      class="rounded-xl bg-brand-600 text-white px-3 py-2 text-xs font-semibold hover:bg-brand-700 transition">
+                Enviar
+              </button>
+            </div>
+
+            <div class="mt-2 flex gap-2">
+              <a class="flex-1 text-center rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-3 py-2 text-[11px] font-semibold text-white/90 transition"
+                 href="https://notebooklm.google.com/notebook/00c06b31-f781-48d6-a451-163add40120c"
+                 target="_blank" rel="noopener noreferrer">NotebookLM</a>
+              <a class="text-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-2 text-[11px] font-semibold text-white/80 transition"
+                 href="https://docs.google.com/forms/d/e/1FAIpQLSfQMQdQZ0B39Di1BeD5crMFWLia806bD7uZguzbpam2gFhv3Q/viewform"
+                 target="_blank" rel="noopener noreferrer">Feedback</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-gray-100 bg-gray-50">
+            <div class="text-xs text-gray-500">
+                <p class="font-semibold text-gray-700">Precisa de Ajuda?</p>
+                <p class="mt-1">Slack: <span class="font-mono text-brand-700">#fale-com-cesc-supplychain</span></p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Menu Button (Visible only on small screens) -->
+    <div class="md:hidden fixed top-0 left-0 w-full bg-white border-b z-20 px-4 py-3 flex justify-between items-center shadow-sm">
+        <h1 class="text-lg font-bold text-brand-800">Academia Supply</h1>
+        <button onclick="toggleMobileMenu()" class="text-gray-600 focus:outline-none text-2xl">☰</button>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-30 hidden" onclick="toggleMobileMenu()">
+        <div class="bg-white w-64 h-full shadow-lg p-4" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-bold text-lg">Menu</h2>
+                <button onclick="toggleMobileMenu()" class="text-2xl">&times;</button>
+            </div>
+            <!-- Mobile Navigation Links (Cloned logic) -->
+            <ul class="space-y-2">
+                <li><button onclick="navigateTo('dashboard'); toggleMobileMenu()" class="block w-full text-left py-2 px-4 hover:bg-gray-100 rounded flex items-center gap-2"><svg class="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M3 3v18h18"/>
+  <path d="M7 15V9"/>
+  <path d="M12 15V6"/>
+  <path d="M17 15v-4"/>
+</svg>Estratégia &amp; Propósito</button></li>
+                <li><button onclick="navigateTo('tracks'); toggleMobileMenu()" class="block w-full text-left py-2 px-4 hover:bg-gray-100 rounded flex items-center gap-2"><svg class="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11z"/>
+  <path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+</svg>Trilhas de Conhecimento</button></li>
+                <li><button onclick="navigateTo('sesuite'); toggleMobileMenu()" class="block w-full text-left py-2 px-4 hover:bg-gray-100 rounded flex items-center gap-2"><svg class="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="3" y="4" width="18" height="14" rx="2"/>
+  <path d="M8 20h8"/>
+  <path d="M12 18v2"/>
+</svg>Guia Prático SE Suite</button></li>
+                <li><button onclick="navigateTo('audit'); toggleMobileMenu()" class="block w-full text-left py-2 px-4 hover:bg-gray-100 rounded flex items-center gap-2"><svg class="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+  <path d="M14 2v6h6"/>
+  <path d="M9 13h6"/>
+  <path d="M9 17h6"/>
+  <path d="M9 9h2"/>
+</svg>Auditoria ISO &amp; SGI</button></li>
+                <li><button onclick="navigateTo('people'); toggleMobileMenu()" class="block w-full text-left py-2 px-4 hover:bg-gray-100 rounded flex items-center gap-2"><svg class="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+  <circle cx="9" cy="7" r="4"/>
+  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+</svg>Quem é Quem</button></li>
+                <li><button onclick="navigateTo('calendar'); toggleMobileMenu()" class="block w-full text-left py-2 px-4 hover:bg-gray-100 rounded flex items-center gap-2"><svg class="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="3" y="4" width="18" height="18" rx="2"/>
+  <path d="M16 2v4"/>
+  <path d="M8 2v4"/>
+  <path d="M3 10h18"/>
+  <path d="M8 14h2"/>
+  <path d="M12 14h2"/>
+  <path d="M16 14h2"/>
+</svg>Calendário</button></li>
+            
+                <li>
+  <a href="https://sites.google.com/grupoboticario.com.br/supplychain/academia-supply-chain" target="_blank" rel="noopener noreferrer" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/90 hover:bg-white/10 transition">
+    <svg class="w-5 h-5 flex-none opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M14 3h7v7" />
+      <path d="M10 14L21 3" />
+      <path d="M21 14v7H3V3h7" />
+    </svg>
+    <span class="truncate">Site da Academia</span>
+  </a>
+</li>
+                <li>
+  <a href="https://notebooklm.google.com/notebook/00c06b31-f781-48d6-a451-163add40120c" target="_blank" rel="noopener noreferrer" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/90 hover:bg-white/10 transition">
+    <svg class="w-5 h-5 flex-none opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+      <path d="M8 9h8" />
+      <path d="M8 13h5" />
+    </svg>
+    <span class="truncate">Chatbot — Perguntas Frequentes</span>
+  </a>
+</li>
+</ul>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-neutral-50 p-4 md:p-8 pt-16 md:pt-8 custom-scroll relative">
+        
+        
+            <!-- HERO / BANNER (estilo portal oficial) -->
+            <section class="relative rounded-2xl overflow-hidden mb-8 shadow-sm border border-slate-200 bg-brand-950">
+                <!-- Imagem de fundo -->
+                <img src="img/estrutura-academia.png" alt="Estrutura da Academia de Supply" class="w-full h-52 md:h-80 object-cover js-img-fallback" data-fallbacks="img/estrutura-academia.PNG,./img/estrutura-academia.png,./img/estrutura-academia.PNG" />
+
+                <!-- Overlay corporativo (azul-marinho) -->
+                <div class="absolute inset-0 bg-gradient-to-r from-brand-950/92 via-brand-950/65 to-brand-950/15"></div>
+
+                <!-- Conteúdo do Hero -->
+                <div class="absolute inset-0 flex items-center">
+                    <div class="px-63 md:px-10 w-full max-w-4xl">
+                        <!-- Logo -->
+                        <!-- Subtítulo -->
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Faixa inferior -->
+                <div class="absolute bottom-0 left-0 right-0 h-2 bg-brand-900"></div>
+            </section>
+<!-- SECTION 1: DASHBOARD (Home) -->
+        <div id="dashboard" class="section fade-in block">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">📊 Estratégia & Propósito</h2>
+                <p class="text-gray-600 mt-2 text-lg">Apoiando o crescimento do negócio através do conhecimento.</p>
+            </header>
+<!-- Context Block -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+                <h3 class="font-semibold text-brand-800 mb-2 uppercase text-sm tracking-wider">Por que existimos?</h3>
+                <p class="text-gray-700 leading-relaxed">
+                    A Academia nasce da necessidade de suportar o <strong>Crescimento do Negócio</strong>. Nosso foco é desenvolver o 
+                    <span class="bg-brand-100 text-brand-800 px-1 rounded font-medium">Profissional do Futuro</span>: 
+                    Data Driven, Market Driven e com Visão Estratégica. Queremos sair de uma gestão de "apagar incêndios" para uma postura antifrágil.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Chart: Success Indicators -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Indicadores de Sucesso (Metas 2025)</h3>
+                    <div class="chart-container">
+                        <canvas id="kpiChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-gray-500 mt-4">Meta: Aumento de produtividade e maturidade organizacional.</p>
+                </div>
+
+                <!-- Strategic Pillars -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex flex-col justify-center">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Pilares de Fortalecimento</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xl font-bold mt-0.5">1</span>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-bold text-gray-900">Protagonismo Estratégico</h4>
+                                <p class="text-lg text-gray-500">Decidir é preciso. Sair da execução pura para a tática.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-lg font-bold mt-0.5">2</span>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-bold text-gray-900">Data Driven Decision Making</h4>
+                                <p class="text-lg text-gray-500">Decisões norteadas por dados, não apenas feelings.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-lg font-bold mt-0.5">3</span>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-bold text-gray-900">Tecnologia Humanizada</h4>
+                                <p class="text-lg text-gray-500">Automatização de processos para liberar o intelecto humano.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: TRACKS (Jornada) -->
+        <div id="tracks" class="section fade-in hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">🧭 Trilhas de Conhecimento de Conhecimento</h2>
+                <p class="text-gray-600 mt-2">A estrutura de aprendizado é dividida em 4 frentes principais.</p>
+            </header>
+
+            <!-- Introduction -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl">💡</span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            <strong>Nota Importante:</strong> Se você assistiu às Aulas Virtuais (Meet), 
+                            <span class="underline">ainda assim precisa concluir a trilha no Educa.ON</span>. 
+                            Os conteúdos são complementares e garantem a equalização do conhecimento.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Track Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                
+                <!-- Card 1: Ambientar -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="h-2 bg-yellow-400"></div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-gray-900">1. Ambientar</h3>
+                            <span class="text-2xl"> </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Visão de cadeia e papel do Supply. Focado em Onboarding e Reciclagem.</p>
+                        <div class="bg-gray-50 rounded p-3 mb-4">
+                            <p class="text-xs font-semibold text-gray-700">Plataforma:</p>
+                            <p class="text-sm text-brand-600 font-bold">Educa.ON</p>
+                        </div>
+                        <button onclick="toggleDetails('track-1')" class="w-full text-center py-2 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">Ver Detalhes</button>
+                    </div>
+                    <div id="track-1" class="hidden bg-gray-50 p-4 border-t border-gray-100 text-xs text-gray-600">
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li>4 Módulos Assíncronos.</li>
+                            <li>Todo Supply deve concluir 100% em 30 dias.</li>
+                            <li>Contexto das Verticais, Horizontes de Planejamento, Indicadores.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 2: Explorar -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="h-2 bg-blue-400"></div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-gray-900">2. Explorar</h3>
+                            <span class="text-2xl"> </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Temas transversais e conexões entre áreas. Visão do todo.</p>
+                        <div class="bg-gray-50 rounded p-3 mb-4">
+                            <p class="text-xs font-semibold text-gray-700">Plataforma:</p>
+                            <p class="text-sm text-brand-600 font-bold">Aulas Virtuais (Meet)</p>
+                        </div>
+                        <button onclick="toggleDetails('track-2')" class="w-full text-center py-2 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">Ver Detalhes</button>
+                    </div>
+                    <div id="track-2" class="hidden bg-gray-50 p-4 border-t border-gray-100 text-xs text-gray-600">
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li>Síncronas (Ao vivo). ~5 por ano.</li>
+                            <li>Gravadas e disponíveis no GSite.</li>
+                            <li>Link fixado no Slack.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 3: Aprofundar -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="h-2 bg-green-500"></div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-gray-900">3. Aprofundar</h3>
+                            <span class="text-2xl"> </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Competências funcionais, procedimentos técnicos (POGs/POLs).</p>
+                        <div class="bg-gray-50 rounded p-3 mb-4">
+                            <p class="text-xs font-semibold text-gray-700">Plataforma:</p>
+                            <p class="text-sm text-brand-600 font-bold"> Guia Prático SE Suite</p>
+                        </div>
+                        <button onclick="toggleDetails('track-3')" class="w-full text-center py-2 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">Ver Detalhes</button>
+                    </div>
+                    <div id="track-3" class="hidden bg-gray-50 p-4 border-t border-gray-100 text-xs text-gray-600">
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li>Conteúdos da sua área específica.</li>
+                            <li>Procedimentos ISO.</li>
+                            <li>Requer acesso via Multiplicador.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 4: Habilitar -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="h-2 bg-purple-500"></div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-gray-900">4. Habilitar</h3>
+                            <span class="text-2xl"></span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Power Skills e competências comportamentais (Liderança e Times).</p>
+                        <div class="bg-gray-50 rounded p-3 mb-4">
+                            <p class="text-xs font-semibold text-gray-700">Plataforma:</p>
+                            <p class="text-sm text-brand-600 font-bold">Zoom / Presencial</p>
+                        </div>
+                        <button onclick="toggleDetails('track-4')" class="w-full text-center py-2 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">Ver Detalhes</button>
+                    </div>
+                    <div id="track-4" class="hidden bg-gray-50 p-4 border-t border-gray-100 text-xs text-gray-600">
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li>Workshops e Palestras.</li>
+                            <li>Encontros de Liderança.</li>
+                            <li>Foco em Cultura e Comportamento.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: SE SUITE (Ferramentas) -->
+        <div id="sesuite" class="section fade-in hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Guia Prático 💻 Guia Prático SE Suite</h2>
+                <p class="text-gray-600 mt-2">O Guia Prático SE Suite é a ferramenta central para gestão documental e treinamentos técnicos.</p>
+            </header>
+
+            <!-- Interactive Tabbed Interface -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="flex border-b border-gray-200">
+                    <button onclick="switchTab('tab-access')" id="btn-tab-access" class="flex-1 py-4 text-center font-medium text-sm bg-brand-50 text-brand-700 border-b-2 border-brand-500">Como Solicitar Acesso</button>
+                    <button onclick="switchTab('tab-teams')" id="btn-tab-teams" class="flex-1 py-4 text-center font-medium text-sm text-gray-500 hover:text-gray-700">Gestão de Equipes</button>
+                    <button onclick="switchTab('tab-verify')" id="btn-tab-verify" class="flex-1 py-4 text-center font-medium text-sm text-gray-500 hover:text-gray-700">Verificar Treinamentos</button>
+                </div>
+
+                <!-- Tab Content: Access -->
+                <div id="tab-access" class="p-8 tab-content block">
+                    <h3 class="text-xl font-bold mb-4">Passo a Passo: Solicitação de Acesso</h3>
+                    <div class="space-y-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500">1</div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-900">Acesse o "Meu Acesso GB"</h4>
+                                <p class="text-gray-600 text-sm">Navegue até a aba <strong>Central de Solicitações</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500">2</div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-900">Selecione o 💻 Guia Prático SE Suite</h4>
+                                <p class="text-gray-600 text-sm">Pesquise pelo app " Guia Prático SE Suite", clique em selecionar e escreva uma justificativa.</p>
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500">3</div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-900">Ação do Multiplicador</h4>
+                                <p class="text-gray-600 text-sm">Após liberado, avise o <strong>Multiplicador</strong> da sua área para te incluir na equipe correta dentro do sistema.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Teams (Multipliers) -->
+                <div id="tab-teams" class="p-8 tab-content hidden">
+                    <h3 class="text-xl font-bold mb-4">Para Multiplicadores: Incluir/Excluir Pessoas</h3>
+                    <div class="bg-yellow-50 p-4 rounded-lg mb-6 text-sm text-yellow-800 border border-yellow-200">
+                        <strong>Caminho:</strong> Componente -> Workflow -> Inicialização -> "Gestão de equipes/usuários".
+                    </div>
+                    <form class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Simulador de Fluxo:</label>
+                        <select id="workflow-action" class="w-full p-2 border border-gray-300 rounded mb-4" onchange="updateWorkflowHelp()">
+                            <option value="default">Selecione a Ação...</option>
+                            <option value="add">Incluir Colaborador</option>
+                            <option value="remove">Remover Colaborador</option>
+                        </select>
+                        <div id="workflow-help" class="text-sm text-gray-600 italic">
+                            Selecione uma ação acima para ver os detalhes obrigatórios.
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab Content: Verify -->
+                <div id="tab-verify" class="p-8 tab-content hidden">
+                    <h3 class="text-xl font-bold mb-4">Como ver meus treinamentos?</h3>
+                    <ul class="list-disc pl-5 space-y-3 text-gray-700">
+                        <li>Acesse o 💻 Guia Prático SE Suite e clique em "Autenticação Integrada".</li>
+                        <li>Vá em <strong>Módulo Treinamentos</strong> -> Campo Curso.</li>
+                        <li>Você pode filtrar por Área, Trilha ou Nome.</li>
+                        <li><strong>Dica:</strong> Verifique o módulo "Minhas Tarefas" para pendências de leitura de documentos.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: AUDIT (ISO/SGI) -->
+        <div id="audit" class="section fade-in hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">📑 Auditoria ISO & SGI & SGI</h2>
+                <p class="text-gray-600 mt-2">Guia de preparação para auditorias internas e externas (CAM, SJP, Truss).</p>
+            </header>
+
+            <!-- Golden Rule -->
+            <div class="bg-gradient-to-r from-brand-600 to-brand-800 text-white p-6 rounded-xl shadow-lg mb-8 text-center">
+                <h3 class="text-2xl font-bold mb-2">Regra de Ouro</h3>
+                <p class="text-lg opacity-90">"O que está escrito é o que deve ser feito."</p>
+                <p class="text-sm mt-2 font-light">Garanta que seus POGs e POLs no 💻 Guia Prático SE Suite refletem exatamente sua prática diária.</p>
+            </div>
+
+            <!-- Concepts Grid (Interactive Cards) -->
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Conceitos Essenciais (Clique para ver definição)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <!-- Card 1 -->
+                <div onclick="flipCard(this)" class="cursor-pointer bg-white h-40 rounded-lg shadow-sm border border-gray-200 relative perspective group">
+                    <div class="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-300 opacity-100 group-hover:opacity-0 bg-white z-10 rounded-lg">
+                        <h4 class="text-xl font-bold text-brand-600">SGI</h4>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center p-4 bg-brand-50 text-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p class="text-lg text-gray-800">Sistema de Gestão Integrado: Qualidade, Saúde, Segurança, Meio Ambiente e Energia.</p>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div onclick="flipCard(this)" class="cursor-pointer bg-white h-40 rounded-lg shadow-sm border border-gray-200 relative perspective group">
+                    <div class="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-300 opacity-100 group-hover:opacity-0 bg-white z-10 rounded-lg">
+                        <h4 class="text-xl font-bold text-brand-600">SIPOC</h4>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center p-4 bg-brand-50 text-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p class="text-lg text-gray-800">Mapa do Escopo do Processo: Supplier, Input, Process, Output, Customer.</p>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div onclick="flipCard(this)" class="cursor-pointer bg-white h-40 rounded-lg shadow-sm border border-gray-200 relative perspective group">
+                    <div class="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-300 opacity-100 group-hover:opacity-0 bg-white z-10 rounded-lg">
+                        <h4 class="text-xl font-bold text-brand-600">RNC</h4>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center p-4 bg-brand-50 text-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p class="text-lg text-gray-800">Relatório de Não Conformidade. Registro de desvios e planos de ação.</p>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div onclick="flipCard(this)" class="cursor-pointer bg-white h-40 rounded-lg shadow-sm border border-gray-200 relative perspective group">
+                    <div class="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-300 opacity-100 group-hover:opacity-0 bg-white z-10 rounded-lg">
+                        <h4 class="text-xl font-bold text-brand-600">LAIA</h4>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center p-4 bg-brand-50 text-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p class="text-lg text-gray-800">Levantamento de Aspectos e Impactos Ambientais. Interação com o meio ambiente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: PEOPLE (👥 Quem é Quem) -->
+        <div id="people" class="section fade-in hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">👥 Quem é Quem</h2>
+                <p class="text-gray-600 mt-2">Sponsors, Líderes de Projeto e Multiplicadores das Áreas.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Sponsors -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-400">
+                    <h3 class="font-bold text-lg mb-2">Sponsors & Líderes</h3>
+                    <ul class="text-sm space-y-2">
+                        <li><strong>Eduardo Villas:</strong> Sponsor Geral</li>
+                        <li><strong>Rafael Mueller:</strong> Sponsor Primário</li>
+                        <li><strong>Liara Ribas:</strong> Líder do Projeto</li>
+                        <li><strong>Karla Rios:</strong> EducaOp</li>
+                    </ul>
+                </div>
+
+                <!-- Multipliers Search -->
+                <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="font-bold text-lg mb-4">Encontre seu Multiplicador</h3>
+                    <div class="flex gap-2 mb-4">
+                        <button onclick="filterMultipliers('all')" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-200 hover:bg-gray-300 focus:ring ring-offset-1 focus:ring-brand-500">Todos</button>
+                        <button onclick="filterMultipliers('S&OP')" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700">S&OP</button>
+                        <button onclick="filterMultipliers('S&OE')" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700">S&OE</button>
+                        <button onclick="filterMultipliers('CP')" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700">CP</button>                      
+                        <button onclick="filterMultipliers('Customer Service')" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700">Customer</button>
+                       <button onclick="filterMultipliers('CESC')" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700">CESC</button>                      
+                    </div>                    
+                    <div class="overflow-y-auto max-h-60 custom-scroll border border-gray-100 rounded">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-500 sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-2 w-14">Foto</th>
+                                    <th class="px-4 py-2">Nome</th>
+                                    <th class="px-4 py-2">Área</th>
+                                    <th class="px-4 py-2">Função</th>
+                                </tr>
+                            </thead>
+                            <tbody id="multipliers-table-body" class="divide-y divide-gray-100">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: CALENDAR -->
+        <div id="calendar" class="section fade-in hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">📅 Calendário Acadêmico</h2>
+                <p class="text-gray-600 mt-2">Programação dos módulos e encontros para 2025.</p>
+            </header>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="font-bold text-lg mb-6">Linha do Tempo 2025</h3>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+                
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-50 rounded border border-gray-100">
+                        <h4 class="font-bold text-brand-700 mb-2">Trimestral</h4>
+                        <p class="text-sm">Encontros de Liderança (Zoom/Presencial) acontecem a cada trimestre.</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded border border-gray-100">
+                        <h4 class="font-bold text-brand-700 mb-2">Checklists Mensais</h4>
+                        <p class="text-sm">Verifique o módulo "Minhas Tarefas" no 💻 Guia Prático SE Suite mensalmente para novas publicações.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- DATA & STATE ---
+        // --- IMAGE FALLBACKS ---
+        // Tenta caminhos alternativos caso a imagem não carregue (muito comum em file:// quando o HTML não está na mesma pasta do /img)
+        function tryImageFallback(imgEl) {
+          const tried = (imgEl.dataset.tried || "").split("|").filter(Boolean);
+          const fallbacks = (imgEl.dataset.fallbacks || "").split(",").map(s => s.trim()).filter(Boolean);
+        
+          for (const fb of fallbacks) {
+            if (!tried.includes(fb)) {
+              tried.push(fb);
+              imgEl.dataset.tried = tried.join("|");
+              imgEl.src = fb;
+              return;
+            }
+          }
+        
+          // Se chegou aqui, todos falharam: mantém o alt visível e registra no console
+          console.warn("[Imagem não encontrada]", imgEl.getAttribute("alt"), "Tentativas:", tried, "CWD:", window.location.href);
+        }
+        
+        document.addEventListener("DOMContentLoaded", () => {
+          document.querySelectorAll("img.js-img-fallback").forEach(img => {
+            img.addEventListener("error", () => tryImageFallback(img));
+          });
+        });
+        
+        
+        const multipliersData = [
+    { name: "Ricardo Ventura", area: "S&OP", role: "Capacidade (Cuidados)", photo: "img/multiplicadores/ricardo-ventura.jpg" },
+    { name: "Giovanna Coradin", area: "S&OP", role: "Capacidade (Make)", photo: "img/multiplicadores/giovanna-coradin.jpg" },
+    { name: "Wagner Luis Cobachuk", area: "S&OP", role: "Capacidade (Perfumaria e Gifts)", photo: "img/multiplicadores/wagner-cobachuk.jpg" },
+    { name: "Rayane Deretti Luz", area: "S&OP", role: "Lançamentos (Cuidados)", photo: "img/multiplicadores/rayane-deretti.jpg" },
+    { name: "Fernanda Cristina Basso", area: "S&OP", role: "Lançamentos (Make)", photo: "img/multiplicadores/fernanda-basso.jpg" },
+    { name: "Tavane Marilin Pinotti", area: "S&OP", role: "Lançamentos (Perfumaria e Gifts)", photo: "img/multiplicadores/tavane-pinotti.jpg" },
+    { name: "Cassia Woiciski", area: "S&OP", role: "PCF", photo: "img/multiplicadores/cassia-woiciski.jpg" },
+    { name: "Leylane Koshinski", area: "S&OP", role: "GS&OP", photo: "img/multiplicadores/leylane-koshinski.jpg" },
+    { name: "Debora Srocinski", area: "S&OP", role: "Grades", photo: "img/multiplicadores/debora-srocinski.jpg" },
+    { name: "Alexandre Cesar Selbach", area: "S&OP", role: "GEST Otimização", photo: "img/multiplicadores/alexandre-selbach.jpg" },
+    { name: "Anna Dugonski", area: "S&OP", role: "GEST Perdas", photo: "img/multiplicadores/anna-dugoniski.jpg" },
+    { name: "Bruna Michaela", area: "S&OE", role: "GPI MP (Beauty)", photo: "img/multiplicadores/bruna-buhrer.jpg" },
+    { name: "Francieli Dallagrana", area: "S&OE", role: "GPI MP (Perfumaria)", photo: "img/multiplicadores/francieli-dallagrana.jpg" },
+    { name: "Jessica Teodoro Tamahana", area: "S&OE", role: "GPI MP (Truss)", photo: "img/multiplicadores/jessica-tamahana.jpg" },
+    { name: "Juliana Maia Bloch", area: "S&OE", role: "S&OE Categorias (Cabelos)", photo: "img/multiplicadores/juliana-bloch.jpg" },
+    { name: "Gean Carlos Palubiak", area: "S&OE", role: "S&OE Categorias (Hidroalcoólicos)", photo: "img/multiplicadores/gean-carlos.jpg" },
+    { name: "Bruna Gonçalves", area: "S&OE", role: "S&OE Categorias (Maquiagem)", photo: "img/multiplicadores/bruna-goncalves.jpg" },
+    { name: "Robson Portela", area: "S&OE", role: "S&OE Categorias (Cremes)", photo: "img/multiplicadores/robson-portela.jpg" },
+    { name: "Ana Carolina Simões", area: "S&OE", role: "Terceiros MP", photo: "img/multiplicadores/ana-simoes.jpg" },
+    { name: "Guilherme Rodrigues da Cruz", area: "S&OE", role: "Táticos", photo: "img/multiplicadores/guilherme-rodriguez.jpg" },
+    { name: "Alinne Nascimento", area: "S&OE", role: "GAPO", photo: "img/multiplicadores/alinne-nascimento.jpg" },
+    { name: "Ingrid de Carvalho", area: "S&OE", role: "PMP", photo: "img/multiplicadores/ingrid-carvalho.jpg" },
+    { name: "Tatiani Bonilha", area: "S&OE", role: "PMP", photo: "img/multiplicadores/tatiani-bonilha.jpg" },
+    { name: "Leticia Souza Silva", area: "CP", role: "DRP", photo: "img/multiplicadores/leticia-souza.jpg" },
+    { name: "Lara Ramos dos Santos", area: "CP", role: "GPP", photo: "img/multiplicadores/lara-ramos.jpg" },
+    { name: "Eduardo Pureza", area: "CP", role: "GMI", photo: "img/multiplicadores/eduardo-pureza.jpg" },
+    { name: "Sarah Vivian Mocellin", area: "CP", role: "Terceiros CP", photo: "img/multiplicadores/sarah-vivian.jpg" },
+    { name: "Melissa Firmo Barbosa", area: "CP", role: "ICP", photo: "img/multiplicadores/melissa-firmo.jpg" },
+    { name: "Larissa Quessada Bertulini", area: "CP", role: "GOT", photo: "img/multiplicadores/larissa-quessada.jpg" },
+    { name: "Luciano Everton", area: "Customer Service", role: "Atendimento Franquias", photo: "img/multiplicadores/luciano-madureira.jpg" },
+    { name: "Jessica Farias Pereira", area: "Customer Service", role: "Atendimento Franquias", photo: "img/multiplicadores/jessica-farias.jpg" },
+    { name: "Tatiana Guimarães", area: "Customer Service", role: "Pedido Perfeito", photo: "img/multiplicadores/tatiana-guimaraes.jpg" },
+    { name: "Kienia Rubia da Silva", area: "Customer Service", role: "Atendimento Exportação / Nacional Truss / Importação", photo: "img/multiplicadores/kienia-rubia.jpg" },
+    { name: "Alice Sales", area: "Customer Service", role: "GAM", photo: "img/multiplicadores/alice-sales.jpg" },
+    { name: "Daniela Rosa Silva", area: "Customer Service", role: "B2B", photo: "img/multiplicadores/daniela-rosa.jpg" },
+    { name: "Suelen Mara Sklasky", area: "Customer Service", role: "Varejo Ágil", photo: "img/multiplicadores/suelen-sklasky.jpg" },
+    { name: "Rebeca Nart Aguiar", area: "Customer Service", role: "NIPPA", photo: "img/multiplicadores/rebeca-nart.jpg" },
+    { name: "Liara Ribas", area: "CESC", role: "CGS", photo: "img/multiplicadores/liara-ribas.jpg" },
+    { name: "Vania Ausvald Mantovani", area: "CESC", role: "CPI", photo: "img/multiplicadores/vania-mantovani.jpg" },
+    { name: "Lie Crietia Kono Toba", area: "CESC", role: "CPP", photo: "img/multiplicadores/lie-kono.jpg" },
+    { name: "Suelen Boschetto Magatao", area: "CESC", role: "CIS", photo: "img/multiplicadores/suelen-magatao.jpg" },
+    { name: "Leonardo de Castro Oliveira", area: "CESC", role: "CPA", photo: "img/multiplicadores/leonardo-oliveira.jpg" }
+  ];
+
+        // --- NAVIGATION LOGIC ---
+        function navigateTo(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+
+            // Show target section
+            const target = document.getElementById(sectionId);
+            if(target) {
+                target.classList.remove('hidden');
+                target.classList.add('block');
+            }
+
+            // Update Nav Styles
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active', 'bg-gray-50', 'text-brand-600', 'border-r-4', 'border-brand-600', 'bg-brand-50');
+                
+            });
+            
+            const activeNav = document.getElementById('nav-' + sectionId);
+            if(activeNav) {
+                activeNav.classList.add('active'); // CSS class handles the rest
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- SECTION SPECIFIC LOGIC ---
+
+        // Tracks Accordion
+        function toggleDetails(trackId) {
+            const el = document.getElementById(trackId);
+            el.classList.toggle('hidden');
+        }
+
+        // 💻 Guia Prático SE Suite Tabs
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+            
+            // Show target
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+
+            // Reset styles
+            const btns = ['btn-tab-access', 'btn-tab-teams', 'btn-tab-verify'];
+            btns.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                btn.classList.remove('bg-brand-50', 'text-brand-700', 'border-b-2', 'border-brand-500');
+                btn.classList.add('text-gray-500');
+            });
+
+            // Activate button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('bg-brand-50', 'text-brand-700', 'border-b-2', 'border-brand-500');
+            activeBtn.classList.remove('text-gray-500');
+        }
+
+        // Workflow Helper
+        function updateWorkflowHelp() {
+            const val = document.getElementById('workflow-action').value;
+            const help = document.getElementById('workflow-help');
+            if(val === 'add') {
+                help.innerHTML = '<span class="text-green-600 font-bold">Inclusão:</span> Preencha "Tipo de Objeto: Equipe" e Justifique "Novo Colaborador".';
+            } else if (val === 'remove') {
+                help.innerHTML = '<span class="text-red-600 font-bold">Remoção:</span> Preencha "Tipo de Objeto: Equipe" e Justifique "Desligamento ou Transferência".';
+            } else {
+                help.innerText = 'Selecione uma ação acima para ver os detalhes obrigatórios.';
+            }
+        }
+
+        // Multipliers Filter
+        function filterMultipliers(category) {
+            const tbody = document.getElementById('multipliers-table-body');
+            tbody.innerHTML = ''; // Clear
+
+            const filtered = category === 'all' 
+                ? multipliersData 
+                : multipliersData.filter(m => m.area === category);
+
+            filtered.forEach(m => {
+                const row = `
+                    <tr class="hover:bg-gray-50">
+                     <td class="px-4 py-2">
+                      <img
+                        src="${m.photo || ''}"
+                        alt="Foto de ${m.name}"
+                        class="h-10 w-10 rounded-full object-cover border border-gray-200"
+                        onerror="this.outerHTML = '<div class=&quot;h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600&quot;>' + (${JSON.stringify("X")} ) + '</div>';"
+      />
+     </td>
+                        <td class="px-4 py-2 font-medium text-gray-900">${m.name}</td>
+                        <td class="px-4 py-2"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">${m.area}</span></td>
+                        <td class="px-4 py-2 text-gray-500">${m.role}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // --- CHARTS INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate initial table
+            filterMultipliers('all');
+
+            // KPI Chart (Donut)
+            const ctxKPI = document.getElementById('kpiChart').getContext('2d');
+            new Chart(ctxKPI, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Produtividade (MCI)', 'Engajamento', 'Maturidade Gartner'],
+                    datasets: [{
+                        data: [4, 15, 81], // Mock relative values based on context
+                        backgroundColor: ['#4472c4ff', '#c7b498ff', '#44546aff'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.label.includes('Produtividade')) return ' Meta: +4% de ganho';
+                                    return ' Meta: Alto crescimento';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Timeline Chart (Bar horizontal)
+            const ctxTime = document.getElementById('timelineChart').getContext('2d');
+            new Chart(ctxTime, {
+                type: 'bar',
+                data: {
+                    labels: ['Módulo 1: Visão Sistêmica', 'Módulo 2: Protagonismo', 'Módulo 3: Comunicação'],
+                    datasets: [{
+                        label: 'Duração (Meses)',
+                        data: [2, 2, 2], // Mar/Apr, May/Jun, Aug/Sep
+                        backgroundColor: ['#44546aff', '#4472c4ff', '#c7b498ff'],
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Horizontal
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter', size: 12 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(c) {
+                                    if(c.dataIndex === 0) return 'Março / Abril';
+                                    if(c.dataIndex === 1) return 'Maio / Junho';
+                                    if(c.dataIndex === 2) return 'Agosto / Setembro';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+    </script>
+
+<script>
+  // ===== KPI Chart (robusto para file:// e troca de seções) =====
+  let __kpiChartInstance = null;
+
+  function renderKpiChart() {
+    const canvas = document.getElementById('kpiChart');
+    if (!canvas) return;
+
+    // Se Chart.js não carregou (ex.: PC sem internet), mostra fallback simples
+    if (typeof window.Chart === 'undefined') {
+      const host = canvas.parentElement;
+      if (host && !host.querySelector('.kpi-fallback')) {
+        host.innerHTML = `
+          <div class="kpi-fallback" style="border:1px dashed #cbd5e1;border-radius:12px;padding:14px;color:#334155;background:#f8fafc">
+            <b>Gráfico indisponível</b> (Chart.js não carregou).<br/>
+            Verifique conexão com internet ou libere acesso ao <span style="font-family:ui-monospace">cdn.jsdelivr.net</span>.
+          </div>
+        `;
+      }
+      return;
+    }
+
+    // Se canvas estiver oculto (display:none), aguarda ele ficar visível
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      requestAnimationFrame(renderKpiChart);
+      return;
+    }
+
+    if (__kpiChartInstance) {
+      __kpiChartInstance.resize();
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    __kpiChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Produtividade (MCI)', 'Engajamento', 'Maturidade Gartner'],
+        datasets: [{
+          data: [10, 35, 55],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        },
+        cutout: '55%'
+      }
+    });
+  }
+
+  // Hook: ao carregar a página, renderiza (depois do Chart.js via defer)
+  window.addEventListener('load', () => {
+    // pequeno delay para garantir layout pronto
+    setTimeout(renderKpiChart, 0);
+  });
+
+  // Hook: se seu HTML usa navigateTo()/showSection() para trocar seções,
+  // tenta re-render/resize quando o usuário volta para o dashboard.
+  (function () {
+    const _navigateTo = window.navigateTo;
+    if (typeof _navigateTo === 'function') {
+      window.navigateTo = function () {
+        const r = _navigateTo.apply(this, arguments);
+        // após navegação, tenta garantir gráfico
+        setTimeout(renderKpiChart, 50);
+        return r;
+      }
+    }
+  })();
+</script>
+
+
+<script>
+/* ===== Sidebar Chat Widget (local, sem IA) ===== */
+(function () {
+  const toggle = document.getElementById('asupply-sidebar-chat-toggle');
+  const panel  = document.getElementById('asupply-sidebar-chat-panel');
+  const chevron = document.getElementById('asupply-chat-chevron');
+  const input  = document.getElementById('asupply-sidebar-chat-input');
+  const sendBtn = document.getElementById('asupply-sidebar-chat-send');
+  const messages = document.getElementById('asupply-sidebar-chat-messages');
+  const heroBtn = document.getElementById('asupply-hero-chat-btn');
+
+  if (!toggle || !panel || !messages) return;
+
+  function openPanel() {
+    panel.classList.remove('hidden');
+    if (chevron) chevron.textContent = 'Fechar';
+    setTimeout(() => input && input.focus(), 50);
+  }
+  function closePanel() {
+    panel.classList.add('hidden');
+    if (chevron) chevron.textContent = 'Abrir';
+  }
+  function togglePanel() {
+    panel.classList.contains('hidden') ? openPanel() : closePanel();
+  }
+
+  function esc(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function addMsg(who, html) {
+    const wrap = document.createElement('div');
+    wrap.className = 'flex gap-2';
+    if (who === 'user') {
+      wrap.classList.add('justify-end');
+      wrap.innerHTML = `
+        <div class="bg-brand-600/30 border border-white/10 rounded-2xl px-2 py-1 max-w-[88%] ml-auto text-white/95">${html}</div>
+        <div class="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/80">Você</div>`;
+    } else {
+      wrap.innerHTML = `
+        <div class="h-6 w-6 rounded-full bg-white/15 flex items-center justify-center text-[10px] font-bold text-white/90">A</div>
+        <div class="bg-white/10 border border-white/10 rounded-2xl px-2 py-1 max-w-[88%] text-white/90">${html}</div>`;
+    }
+    messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function normalize(s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function botReply(userText) {
+    const t = normalize(userText);
+
+    if (t.includes('se suite') || t.includes('sesuite') || t.includes('treinamento') || t.includes('treinamentos')) {
+      return `Para <b>SE Suite</b>: menu → <b>Guia Prático SE Suite</b>. Para acesso: “Meu Acesso GB” → Central de Solicitações → solicitar app. Depois avise o <b>Multiplicador</b> para te incluir na equipe.`;
+    }
+    if (t.includes('trilha') || t.includes('trilhas') || t.includes('educa')) {
+      return `Sobre <b>Trilhas</b>: menu → <b>Trilhas de Conhecimento</b>. Mesmo assistindo Meet, conclua no <b>Educa.ON</b> para registrar conclusão.`;
+    }
+    if (t.includes('acesso') || t.includes('site') || t.includes('academia')) {
+      return `Acesse o portal no botão <b>Site da Academia</b> (menu). Para IA + biblioteca, clique em <b>NotebookLM</b> aqui no chat.`;
+    }
+    if (t.includes('slack') || t.includes('suporte') || t.includes('ajuda')) {
+      return `Suporte: canal <b>#fale-com-cesc-supplychain</b> no Slack. Se puder, mande um <b>Feedback</b> pelo formulário 😉`;
+    }
+
+    return `Entendi 👍 Para respostas completas baseadas nos conteúdos, use <b>NotebookLM</b>. Se quiser, me diga se é “Trilhas”, “SE Suite”, “Acesso” ou “Suporte”.`;
+  }
+
+  function send() {
+    const text = (input.value || '').trim();
+    if (!text) return;
+    addMsg('user', esc(text));
+    input.value = '';
+    setTimeout(() => addMsg('bot', botReply(text)), 160);
+  }
+
+  toggle.addEventListener('click', togglePanel);
+  if (sendBtn) sendBtn.addEventListener('click', send);
+  if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+
+  if (heroBtn) heroBtn.addEventListener('click', () => {
+    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
+      window.open('https://notebooklm.google.com/notebook/00c06b31-f781-48d6-a451-163add40120c', '_blank');
+      return;
+    }
+    openPanel();
+  });
+})();
+</script>
+
+</body>
+</html>
